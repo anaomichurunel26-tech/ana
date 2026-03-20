@@ -1,0 +1,294 @@
+ <nav>
+        <a href="inicio.html">Inicio</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="servicios.html">Servicios</a>
+        <a href="contacto.html">Contacto</a>
+		<a href="galeria.html">Galeria</a>
+		<a href="calculos.html">calculos</a>
+    </nav>
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Calculadora y Conversor de Temperatura</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column; /* Para apilar los elementos verticalmente */
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background-color: #f0f0f0;
+    padding: 20px; /* Añadir un poco de padding al cuerpo */
+}
+.container {
+    display: flex;
+    gap: 30px; /* Espacio entre la calculadora y el conversor */
+    flex-wrap: wrap; /* Permitir que los elementos se apilen en pantallas pequeñas */
+    justify-content: center;
+}
+.calculator, .temperature-converter {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    margin-bottom: 20px; /* Espacio inferior para cada sección */
+}
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+.calculator input[type="text"], .temperature-converter input[type="number"] {
+    width: calc(100% - 15px); /* Ajuste para el padding */
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Para que el padding no afecte el ancho total */
+}
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.calculator input[type="button"] {
+    padding: 12px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #e0e0e0;
+    transition: background-color 0.2s ease;
+}
+.calculator input[type="button"]:hover {
+    background-color: #d5d5d5;
+}
+.calculator input[type="button"]:active {
+    background-color: #ccc;
+}
+.operator {
+    background-color: #ff9500;
+    color: white;
+}
+.operator:hover {
+    background-color: #e08500;
+}
+.clear {
+    background-color: #d4d4d2;
+}
+.clear:hover {
+    background-color: #c0c0bc;
+}
+.equal {
+    background-color: #007bff;
+    color: white;
+    grid-column: span 2; /* El botón de igual ocupa dos columnas */
+}
+.equal:hover {
+    background-color: #0056b3;
+}
+/* Estilos para el conversor de temperatura */
+.temp-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.temp-controls button {
+    padding: 10px 15px;
+    font-size: 1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+.temp-controls button:hover {
+    background-color: #0056b3;
+}
+.temp-controls button.clear-temp {
+    background-color: #d4d4d2;
+}
+.temp-controls button.clear-temp:hover {
+    background-color: #c0c0bc;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="temperature-converter">
+        <h2>Conversor de Temperatura</h2>
+        <input type="number" id="tempInput" placeholder="Introduce valor">
+        <div class="temp-controls">
+            <button onclick="convertCelsiusToFahrenheit()">°C a °F</button>
+            <button onclick="convertFahrenheitToCelsius()">°F a °C</button>
+        </div>
+        <input type="text" id="tempResult" disabled placeholder="Resultado">
+        <button onclick="clearTemp()" class="clear-temp" style="margin-top: 10px; width: 100%;">Limpiar</button>
+    </div>
+
+    <div class="calculator">
+        <h2>Calculadora</h2>
+        <input type="text" id="calcResult" disabled placeholder="0">
+        <div class="buttons">
+            <input type="button" value="C" onclick="clearCalc()" class="clear">
+            <input type="button" value="+/-" onclick="toggleSign()">
+            <input type="button" value="%" onclick="setOperator('%')">
+            <input type="button" value="/" onclick="setOperator('/')" class="operator">
+
+            <input type="button" value="7" onclick="display('7')">
+            <input type="button" value="8" onclick="display('8')">
+            <input type="button" value="9" onclick="display('9')">
+            <input type="button" value="*" onclick="setOperator('*')" class="operator">
+
+            <input type="button" value="4" onclick="display('4')">
+            <input type="button" value="5" onclick="display('5')">
+            <input type="button" value="6" onclick="display('6')">
+            <input type="button" value="-" onclick="setOperator('-')" class="operator">
+
+            <input type="button" value="1" onclick="display('1')">
+            <input type="button" value="2" onclick="display('2')">
+            <input type="button" value="3" onclick="display('3')">
+            <input type="button" value="+" onclick="setOperator('+')" class="operator">
+
+            <input type="button" value="0" onclick="display('0')" style="grid-column: span 2;">
+            <input type="button" value="." onclick="display('.')">
+            <input type="button" value="=" onclick="calculate()" class="equal">
+        </div>
+    </div>
+</div>
+
+<script>
+// --- Lógica de la Calculadora ---
+var currentInput = '';
+var operator = '';
+var previousInput = '';
+
+function display(value) {
+    if (document.getElementById("calcResult").value === "Error" || document.getElementById("calcResult").value === "Infinity") {
+        clearCalc(); // Reset if there was an error
+    }
+    if (currentInput === '0' && value === '0') return;
+    if (currentInput === '0' && value === '.') {
+        currentInput = '0.';
+    } else if (currentInput === '0') {
+        currentInput = value;
+    } else {
+        currentInput += value;
+    }
+    document.getElementById("calcResult").value = currentInput;
+}
+
+function setOperator(op) {
+    if (document.getElementById("calcResult").value === "Error" || document.getElementById("calcResult").value === "Infinity") {
+        clearCalc();
+    }
+    if (currentInput === '') return;
+
+    if (previousInput !== '') {
+        calculate(); // Si ya hay una operación pendiente, realizarla
+    }
+
+    operator = op;
+    previousInput = currentInput;
+    currentInput = '';
+    document.getElementById("calcResult").value = previousInput + ' ' + operator;
+}
+
+function calculate() {
+    if (previousInput === '' || currentInput === '' || operator === '') {
+        return;
+    }
+
+    var num1 = parseFloat(previousInput);
+    var num2 = parseFloat(currentInput);
+    var result = 0;
+
+    switch (operator) {
+        case '+':
+            result = num1 + num2;
+            break;
+        case '-':
+            result = num1 - num2;
+            break;
+        case '*':
+            result = num1 * num2;
+            break;
+        case '/':
+            if (num2 === 0) {
+                document.getElementById("calcResult").value = "Error";
+                currentInput = ''; previousInput = ''; operator = '';
+                return;
+            }
+            result = num1 / num2;
+            break;
+        case '%':
+            result = num1 * (num2 / 100);
+            break;
+        default:
+            document.getElementById("calcResult").value = "Error";
+            currentInput = ''; previousInput = ''; operator = '';
+            return;
+    }
+
+    currentInput = result.toString();
+    previousInput = '';
+    operator = '';
+    document.getElementById("calcResult").value = currentInput;
+}
+
+function clearCalc() {
+    currentInput = '';
+    previousInput = '';
+    operator = '';
+    document.getElementById("calcResult").value = '';
+}
+
+function toggleSign() {
+    if (currentInput !== '' && document.getElementById("calcResult").value !== "Error") {
+        currentInput = (parseFloat(currentInput) * -1).toString();
+        document.getElementById("calcResult").value = currentInput;
+    }
+}
+
+// --- Lógica del Conversor de Temperatura ---
+function convertCelsiusToFahrenheit() {
+    var celsius = parseFloat(document.getElementById("tempInput").value);
+    if (!isNaN(celsius)) {
+        var fahrenheit = (celsius * 9/5) + 32;
+        document.getElementById("tempResult").value = fahrenheit.toFixed(2) + " °F";
+    } else {
+        document.getElementById("tempResult").value = "Introduce un número";
+    }
+}
+
+function convertFahrenheitToCelsius() {
+    var fahrenheit = parseFloat(document.getElementById("tempInput").value);
+    if (!isNaN(fahrenheit)) {
+        var celsius = (fahrenheit - 32) * 5/9;
+        document.getElementById("tempResult").value = celsius.toFixed(2) + " °C";
+    } else {
+        document.getElementById("tempResult").value = "Introduce un número";
+    }
+}
+
+function clearTemp() {
+    document.getElementById("tempInput").value = '';
+    document.getElementById("tempResult").value = '';
+}
+
+// Asegurarse de que los campos de texto estén habilitados para mostrar el valor
+document.getElementById("calcResult").disabled = false;
+document.getElementById("tempResult").disabled = false;
+
+</script>
+
+</body>
+</html>
